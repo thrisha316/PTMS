@@ -2,6 +2,7 @@ package com.ptms.app.util;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class DBConnection {
 
@@ -14,7 +15,7 @@ public class DBConnection {
     private static final String PASSWORD =
             "ptms123";
 
-    public static Connection getConnection() throws Exception {
+    public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 }
