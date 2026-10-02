@@ -3,6 +3,8 @@ package com.ptms.app.service;
 import com.ptms.app.dao.ProjectDAO;
 import com.ptms.app.dao.ProjectMemberDAO;
 import com.ptms.app.dao.TicketManagementDAO;
+import com.ptms.app.exception.ResourceNotFoundException;
+import com.ptms.app.exception.ValidationException;
 import com.ptms.app.model.Project;
 import com.ptms.app.model.ProjectMember;
 import com.ptms.app.model.TicketManagement;
@@ -45,7 +47,7 @@ public class TicketManagementService {
         Project project = projectDAO.getProjectById(ticket.getProjectId());
 
         if (project == null) {
-            throw new IllegalArgumentException(
+            throw new ResourceNotFoundException(
                     "Project does not exist. ID: " + ticket.getProjectId());
         }
 
@@ -61,7 +63,19 @@ public class TicketManagementService {
     }
 
     public TicketManagement getTicketById(int id) {
-        return ticketManagementDAO.getTicketById(id);
+        if (id <= 0) {
+            throw new ValidationException("Invalid ticket ID.");
+        }
+
+        TicketManagement ticket =
+                ticketManagementDAO.getTicketById(id);
+
+        if (ticket == null) {
+            throw new ResourceNotFoundException(
+                    "Ticket not found with ID: " + id);
+        }
+
+        return ticket;
     }
 
     public List<TicketManagement> getAllTickets() {
@@ -79,12 +93,16 @@ public class TicketManagementService {
     }
 
     public List<TicketManagement> searchTicketsByAssignedTo(int userId) {
+        if (userId <= 0) {
+            throw new ValidationException("Invalid user ID.");
+        }
+
         return ticketManagementDAO.searchTicketsByAssignedTo(userId);
     }
 
     public void updateTicket(TicketManagement ticket) {
         if (ticket == null || ticket.getId() <= 0) {
-            throw new IllegalArgumentException("Invalid ticket.");
+            throw new ValidationException("Invalid ticket.");
         }
 
         validateTicket(ticket);
@@ -92,7 +110,7 @@ public class TicketManagementService {
         Project project = projectDAO.getProjectById(ticket.getProjectId());
 
         if (project == null) {
-            throw new IllegalArgumentException(
+            throw new ResourceNotFoundException(
                     "Project does not exist. ID: " + ticket.getProjectId());
         }
 
@@ -100,6 +118,14 @@ public class TicketManagementService {
                 ticket.getProjectId(),
                 ticket.getAssignedTo()
         );
+
+        TicketManagement existingTicket =
+                ticketManagementDAO.getTicketById(ticket.getId());
+
+        if (existingTicket == null) {
+            throw new ResourceNotFoundException(
+                    "Ticket not found with ID: " + ticket.getId());
+        }
 
         ticketManagementDAO.updateTicket(ticket);
 
@@ -109,7 +135,15 @@ public class TicketManagementService {
 
     public void deleteTicket(int id) {
         if (id <= 0) {
-            throw new IllegalArgumentException("Invalid ticket ID.");
+            throw new ValidationException("Invalid ticket ID.");
+        }
+
+        TicketManagement existingTicket =
+                ticketManagementDAO.getTicketById(id);
+
+        if (existingTicket == null) {
+            throw new ResourceNotFoundException(
+                    "Ticket not found with ID: " + id);
         }
 
         ticketManagementDAO.deleteTicket(id);
@@ -119,31 +153,31 @@ public class TicketManagementService {
 
     private void validateTicket(TicketManagement ticket) {
         if (ticket == null) {
-            throw new IllegalArgumentException("Ticket cannot be null.");
+            throw new ValidationException("Ticket cannot be null.");
         }
 
         if (ticket.getProjectId() <= 0) {
-            throw new IllegalArgumentException("Invalid project ID.");
+            throw new ValidationException("Invalid project ID.");
         }
 
         if (ticket.getTitle() == null ||
                 ticket.getTitle().isBlank()) {
-            throw new IllegalArgumentException("Ticket title is required.");
+            throw new ValidationException("Ticket title is required.");
         }
 
         if (ticket.getDescription() == null ||
                 ticket.getDescription().isBlank()) {
-            throw new IllegalArgumentException(
+            throw new ValidationException(
                     "Ticket description is required.");
         }
 
         if (ticket.getDeadline() == null) {
-            throw new IllegalArgumentException(
+            throw new ValidationException(
                     "Ticket deadline is required.");
         }
 
         if (ticket.getAssignedTo() <= 0) {
-            throw new IllegalArgumentException(
+            throw new ValidationException(
                     "Invalid assigned user ID.");
         }
 
@@ -154,7 +188,7 @@ public class TicketManagementService {
     private void validateStatus(String status) {
         if (status == null ||
                 !VALID_STATUSES.contains(status)) {
-            throw new IllegalArgumentException(
+            throw new ValidationException(
                     "Invalid ticket status: " + status);
         }
     }
@@ -162,7 +196,7 @@ public class TicketManagementService {
     private void validatePriority(String priority) {
         if (priority == null ||
                 !VALID_PRIORITIES.contains(priority)) {
-            throw new IllegalArgumentException(
+            throw new ValidationException(
                     "Invalid ticket priority: " + priority);
         }
     }
@@ -175,7 +209,7 @@ public class TicketManagementService {
                 .anyMatch(member -> member.getUserId() == userId);
 
         if (!memberExists) {
-            throw new IllegalArgumentException(
+            throw new ValidationException(
                     "Assigned user is not a member of the project.");
         }
     }
