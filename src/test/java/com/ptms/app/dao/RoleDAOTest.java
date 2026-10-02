@@ -9,7 +9,7 @@ class RoleDAOTest {
     void testAddRole() throws Exception {
 
         Role role = new Role();
-        role.setRoleName("TEST_ROLE");
+        role.setRoleName("TEST_ROLE_" + System.currentTimeMillis());
 
         RoleDAO roleDAO = new RoleDAO();
 

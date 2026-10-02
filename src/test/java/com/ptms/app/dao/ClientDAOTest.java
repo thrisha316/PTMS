@@ -3,21 +3,25 @@ package com.ptms.app.dao;
 import com.ptms.app.model.Client;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 class ClientDAOTest {
 
     @Test
     void testAddClient() throws Exception {
 
         Client client = new Client(
-                "Test Client 2",
-                "testclient2@gmail.com",
+                "Test Client",
+                "testclient_" + System.currentTimeMillis() + "@gmail.com",
                 "9876543211",
-                "Test Company 2"
+                "Test Company"
         );
 
         ClientDAO clientDAO = new ClientDAO();
 
         clientDAO.addClient(client);
+
+        assertTrue(client.getId() > 0);
     }
 
     @Test
@@ -25,9 +29,23 @@ class ClientDAOTest {
 
         ClientDAO clientDAO = new ClientDAO();
 
-        Client client = clientDAO.getClientById(5);
+        String email =
+                "getid_" + System.currentTimeMillis() + "@gmail.com";
 
-        System.out.println(client);
+        Client client = new Client(
+                "Get ID Client",
+                email,
+                "9876543212",
+                "Get ID Company"
+        );
+
+        clientDAO.addClient(client);
+
+        Client savedClient =
+                clientDAO.getClientById(client.getId());
+
+        assertNotNull(savedClient);
+        assertEquals(client.getId(), savedClient.getId());
     }
 
     @Test
@@ -35,11 +53,23 @@ class ClientDAOTest {
 
         ClientDAO clientDAO = new ClientDAO();
 
-        Client client = clientDAO.getClientByEmail(
-                "testclient2@gmail.com"
+        String email =
+                "getemail_" + System.currentTimeMillis() + "@gmail.com";
+
+        Client client = new Client(
+                "Get Email Client",
+                email,
+                "9876543213",
+                "Get Email Company"
         );
 
-        System.out.println(client);
+        clientDAO.addClient(client);
+
+        Client savedClient =
+                clientDAO.getClientByEmail(email);
+
+        assertNotNull(savedClient);
+        assertEquals(email, savedClient.getEmail());
     }
 
     @Test
@@ -47,7 +77,7 @@ class ClientDAOTest {
 
         ClientDAO clientDAO = new ClientDAO();
 
-        System.out.println(clientDAO.getAllClients());
+        assertNotNull(clientDAO.getAllClients());
     }
 
     @Test
@@ -55,14 +85,34 @@ class ClientDAOTest {
 
         ClientDAO clientDAO = new ClientDAO();
 
-        Client client = clientDAO.getClientById(5);
+        String email =
+                "update_" + System.currentTimeMillis() + "@gmail.com";
 
-        client.setName("Updated Client");
-        client.setPhone("9999999999");
+        Client client = new Client(
+                "Update Client",
+                email,
+                "9876543214",
+                "Update Company"
+        );
 
-        clientDAO.updateClient(client);
+        clientDAO.addClient(client);
 
-        System.out.println(clientDAO.getClientById(5));
+        Client savedClient =
+                clientDAO.getClientById(client.getId());
+
+        assertNotNull(savedClient);
+
+        savedClient.setName("Updated Client");
+        savedClient.setPhone("9999999999");
+
+        clientDAO.updateClient(savedClient);
+
+        Client updatedClient =
+                clientDAO.getClientById(savedClient.getId());
+
+        assertNotNull(updatedClient);
+        assertEquals("Updated Client", updatedClient.getName());
+        assertEquals("9999999999", updatedClient.getPhone());
     }
 
     @Test
@@ -70,6 +120,24 @@ class ClientDAOTest {
 
         ClientDAO clientDAO = new ClientDAO();
 
-        clientDAO.deleteClient(5);
+        String email =
+                "delete_" + System.currentTimeMillis() + "@gmail.com";
+
+        Client client = new Client(
+                "Delete Client",
+                email,
+                "9876543215",
+                "Delete Company"
+        );
+
+        clientDAO.addClient(client);
+
+        int clientId = client.getId();
+
+        assertNotNull(clientDAO.getClientById(clientId));
+
+        clientDAO.deleteClient(clientId);
+
+        assertNull(clientDAO.getClientById(clientId));
     }
 }
